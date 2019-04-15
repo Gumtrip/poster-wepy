@@ -1,0 +1,85 @@
+{
+	"description": "A WePY project",
+	"setting": {
+		"urlCheck": false,
+		"es6": false,
+		"postcss": false,
+		"minified": false,
+		"newFeature": true
+	},
+	"compileType": "miniprogram",
+	"appid": "wxee6c977066e3ef83",
+	"projectname": "top-mini",
+	"miniprogramRoot": "dist/",
+	"condition": {
+		"search": {
+			"current": -1,
+			"list": []
+		},
+		"conversation": {
+			"current": -1,
+			"list": []
+		},
+		"plugin": {
+			"current": -1,
+			"list": []
+		},
+		"game": {
+			"list": []
+		},
+		"miniprogram": {
+			"current": 6,
+			"list": [
+				{
+					"id": -1,
+					"name": "登陆",
+					"pathName": "pages/auth/login",
+					"query": "",
+					"scene": null
+				},
+				{
+					"id": -1,
+					"name": "我的",
+					"pathName": "pages/user/index",
+					"query": "",
+					"scene": null
+				},
+				{
+					"id": -1,
+					"name": "编辑我的",
+					"pathName": "pages/user/edit",
+					"query": "",
+					"scene": null
+				},
+				{
+					"id": -1,
+					"name": "海报主页",
+					"pathName": "pages/poster/index",
+					"query": "",
+					"scene": null
+				},
+				{
+					"id": 4,
+					"name": "海报封面页",
+					"pathName": "pages/poster/show",
+					"query": "id=63",
+					"scene": null
+				},
+				{
+					"id": 5,
+					"name": "海报详情页",
+					"pathName": "pages/poster/detail",
+					"query": "id=63",
+					"scene": null
+				},
+				{
+					"id": -1,
+					"name": "外部链接",
+					"pathName": "pages/out/index",
+					"query": "",
+					"scene": null
+				}
+			]
+		}
+	}
+}
