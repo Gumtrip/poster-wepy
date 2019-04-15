@@ -52,7 +52,7 @@
             if(poster.external_url){
                 this.poster.url ='/pages/out/index?externalUrl='+poster.external_url;
             }else if(poster.content&&poster.content.length>20){
-                this.poster.url = '/pages/poster/detail?'+poster.id;
+                this.poster.url = '/pages/poster/detail?id='+poster.id;
             }
             this.$apply();
         }catch (e) {

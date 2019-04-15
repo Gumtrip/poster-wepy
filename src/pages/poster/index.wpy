@@ -104,7 +104,6 @@
         <view class="tabContainer {{activeIndex>=0?'show':''}}">
             <view class="weui-tab__content {{activeIndex===0?'':'hidden'}}">
                 <city :activeIndex.sync="activeIndex" @city.user="getCity"></city>
-<!--                <city :activeIndex.sync="activeIndex" @city.user="getCity"></city>-->
             </view>
             <view class="weui-tab__content {{activeIndex===1?'':'hidden'}}">
                 <category :activeIndex.sync="activeIndex" @posterCategory.user="getPosterCategory"></category>
@@ -164,7 +163,7 @@
             curOrder:'',
             inputTitle:'',
             posters:[],
-            activeIndex:0,
+            activeIndex:-1,
             // 当前分页
             page: 1,
             noMoreData: false,
