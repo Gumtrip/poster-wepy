@@ -1,0 +1,73 @@
+<style lang="scss">
+    @import "../../../sass/function";
+
+    .backIcon {
+        font-size: rpx(40);
+        margin-right: rpx(10);
+        line-height: 28px
+    }
+</style>
+
+
+<template>
+    <view class="weui-search-bar">
+        <view class="backIconContainer" @tap="tapClose">
+            <text class="fa fa-arrow-circle-left backIcon"></text>
+        </view>
+        <view class="weui-search-bar__form">
+            <view class="weui-search-bar__box">
+                <icon class="weui-icon-search_in-box" type="search" size="14"></icon>
+                <input type="text" class="weui-search-bar__input" placeholder="搜索" value="{{inputVal}}"
+                       @input="bindInput"/>
+                <view class="weui-icon-clear" wx:if="{{inputVal.length > 0}}" @tap="clearInput">
+                    <icon type="clear" size="14"></icon>
+                </view>
+            </view>
+        </view>
+        <view class="weui-search-bar__cancel-btn" @tap="search">搜索</view>
+    </view>
+</template>
+
+<script>
+    import wepy from 'wepy';
+
+    export default class search extends wepy.component {
+        config = {
+            navigationBarTitleText: ''
+        };
+        data = {
+            inputVal: ''
+        };
+        props = {
+            activeIndex: {
+                type: Number,
+                twoWay: true
+            }
+        };
+
+        close() {
+            this.activeIndex = -1;
+            this.$apply();
+        }
+
+        methods = {
+            bindInput(e) {
+                this.inputVal = e.detail.value;
+                this.$apply();
+            },
+            clearInput() {
+                this.inputVal = '';
+                this.$apply();
+            },
+            tapClose() {
+                this.close();
+            },
+            search() {
+                this.$emit('searchInput', this.inputVal);
+                this.close();
+                this.$apply();
+
+            }
+        };
+    }
+</script>

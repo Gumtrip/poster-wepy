@@ -1,0 +1,74 @@
+<style lang="scss">
+
+</style>
+
+
+<template>
+    <view class="page__bd page__bd_spacing">
+        <view class="weui-flex header">
+            <view class="page__title">排序</view>
+            <icon @tap="tabClose" type="cancel" size="60rpx" color="#666"/>
+        </view>
+        <view class="weui-cells">
+            <repeat for="{{orderList}}" item="item" index="index">
+                <view class="weui-cell" @tap="chooseOrder" data-order="{{item}}">
+                    <view class="weui-cell__bd">
+                        <text>{{item.name}}</text>
+                    </view>
+                    <view class="weui-cell__ft {{currentOrder===item.name?'':'hidden'}}">
+                        <icon type="success"></icon>
+                    </view>
+
+                </view>
+            </repeat>
+        </view>
+
+    </view>
+
+
+</template>
+
+<script>
+    import wepy from 'wepy';
+
+    export default class order extends wepy.component {
+        config = {
+            navigationBarTitleText: ''
+        };
+        props = {
+            activeIndex: {
+                type: Number,
+                twoWay: true
+            }
+        };
+
+        close() {
+            this.activeIndex = -1;
+            this.$apply();
+        }
+
+        watch = {
+
+        };
+        data = {
+            orderList: [
+                { name: '默认', value: ''},
+                { name: '推荐', value: 'my_order' }
+            ],
+            currentOrder: ''
+        };
+        methods = {
+            tabClose() {
+                this.close();
+            },
+            chooseOrder(e) {
+                const order =e.currentTarget.dataset.order;
+                this.currentOrder = order.name;
+                this.close();
+                this.$apply();
+                this.$emit('getOrder', order);
+
+            }
+        };
+    }
+</script>

@@ -1,0 +1,94 @@
+<style lang="scss">
+    @import "./styles/weui/app.wxss";
+    @import "./styles/font-awesome/css/font-awesome.wxss";
+    @import "./sass/function";
+    @import "./sass/custom";
+</style>
+<script>
+    import wepy from 'wepy';
+    import 'wepy-async-function';
+
+    import { setStore } from 'wepy-redux';
+    import configStore from './store';
+    import 'wepy-async-function';
+
+    const store = configStore();
+    setStore(store);
+
+    export default class extends wepy.app {
+        config = {
+            pages: [
+                'pages/index',
+                'pages/out/index',
+                'pages/user/index',
+                'pages/user/edit',
+                // 'pages/user/passwordReset',
+                // 'pages/user/orders',
+                'pages/poster/index',
+                'pages/poster/show',
+                'pages/poster/detail',
+                'pages/auth/login'
+            ],
+            window: {
+                backgroundTextStyle: 'light',
+                navigationBarBackgroundColor: '#fff',
+                navigationBarTitleText: 'TOP-BOOKING',
+                navigationBarTextStyle: 'black'
+            },
+            tabBar: {
+                list: [{
+                    pagePath: 'pages/index',
+                    text: '首页',
+                    iconPath: './images/home.png',
+                    selectedIconPath: './images/home-selected.png'
+                }, {
+                    pagePath: 'pages/user/index',
+                    text: '我的',
+                    iconPath: './images/user.png',
+                    selectedIconPath: './images/user-selected.png'
+                }],
+                color: '#666',
+                selectedColor: '#007bff'
+            }
+        };
+
+        globalData = {
+            userInfo: null
+        };
+
+        constructor() {
+            super();
+            this.use('requestfix');
+            this.use('promisify');
+        }
+        async onLaunch() {
+
+            let res = await wepy.login();
+        }
+
+        sleep(s) {
+            return new Promise((resolve, reject) => {
+                setTimeout(() => {
+                    resolve('promise resolved');
+                }, s * 1000);
+            });
+        }
+
+        async testAsync() {
+            const data = await this.sleep(3);
+        }
+
+        getUserInfo(cb) {
+            const that = this;
+            if (this.globalData.userInfo) {
+                return this.globalData.userInfo;
+            }
+            wepy.getUserInfo({
+                success(res) {
+                    that.globalData.userInfo = res.userInfo;
+                    cb && cb(res.userInfo);
+                }
+            });
+        }
+    }
+</script>

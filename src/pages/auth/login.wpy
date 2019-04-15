@@ -1,0 +1,123 @@
+<style lang="less">
+    .login-wrap {
+        margin-top: 50px;
+    }
+</style>
+<template>
+
+    <view  class="page">
+        <view class="page__bd login-wrap">
+            <view class="weui-toptips weui-toptips_warn" wx:if="{{ errorMessage }}">{{ errorMessage }}</view>
+
+            <view class="weui-cells__title">用户登录</view>
+            <view class="weui-cells weui-cells_after-title">
+
+                <verificationCode :phone="phone" :verificationKey="verificationKey"></verificationCode>
+
+
+                <view class="weui-cell weui-cell_input {{ error ? 'weui-cell_warn' : ''}}">
+                    <view class="weui-cell__hd">
+                        <view class="weui-label">短信验证码</view>
+                    </view>
+                    <view class="weui-cell__bd">
+                        <input class="weui-input" placeholder="短信验证码" type="password" @input="bindVerificationCode" />
+                    </view>
+                    <view wx:if="{{ error }}" class="weui-cell__ft">
+                        <icon type="warn" size="23" color="#E64340"></icon>
+                    </view>
+                </view>
+            </view>
+
+            <view class="weui-btn-area">
+                <button class="weui-btn" type="primary" @tap="submit">登录</button>
+            </view>
+        </view>
+    </view>
+
+</template>
+
+<script>
+    import wepy from 'wepy'
+    import api from '@/http/api'
+    import verificationCode from '@/components/verificationCode';
+    export default class Login extends wepy.page {
+        config = {
+            navigationBarTitleText: '登录',
+        };
+
+        components={
+            verificationCode:verificationCode
+        };
+        data = {
+            phone: '',
+            verificationKey: '',
+            // 是否有错
+            error: false,
+            // 错误信息
+            errorMessage: '',
+            showLoginForm:false
+        };
+
+        methods = {
+
+            // 绑定密码 input 变化
+            bindVerificationCode (e) {
+                this.verificationCode = e.detail.value
+            },
+            // 表单提交
+            async submit() {
+                // 提交时重置错误
+                this.error = false;
+                this.errorMessage = '';
+
+
+                if (!this.phone || !this.verificationCode) {
+                    this.errorMessage = '请填写手机号码和验证码';
+                    return
+                }
+
+
+                let params = {
+                    phone: this.phone,
+                    verificationCode: this.verificationCode,
+                    verificationKey: this.verificationKey
+                };
+                try {
+                    let authResponse = await api.login(params);
+                    // 请求结果为 401 说明用户名和密码错误，显示错误提示
+                    if (authResponse.statusCode === 401) {
+                        this.error = true;
+                        this.errorMessage = authResponse.data.message;
+                        this.$apply()//触发脏数据检查流程的运行
+                    }
+                    // 201 为登录正确，返回上一页
+                    if (authResponse.statusCode === 201) {
+                        wepy.navigateBack()
+                    }
+                } catch (err) {
+                    wepy.showModal({
+                        title: '提示',
+                        content: '服务器错误，请联系管理员'
+                    })
+                }
+            }
+        };
+        // 页面打开事件
+        async onShow() {
+            try {
+                // 打开页面自动调用一次登录
+                let authResponse = await api.login()
+
+                // 登录成功返回上一页
+                if (authResponse.statusCode === 201) {
+                    wepy.navigateBack()
+                }
+            } catch (err) {
+                wepy.showModal({
+                    title: '提示',
+                    content: '服务器错误，请联系管理员'
+                })
+            }
+        }
+    }
+</script>

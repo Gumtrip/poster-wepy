@@ -1,0 +1,42 @@
+<style lang="scss">
+
+</style>
+
+
+<template>
+    <view class="page__bd page__bd_spacing">
+        <view class="page__title">{{poster.title}}</view>
+        <rich-text  nodes="{{poster.content}}"></rich-text>
+    </view>
+</template>
+
+<script>
+  import wepy from 'wepy';
+  import api from '@/http/api'
+
+  export default class detail extends wepy.page {
+    config = {
+      navigationBarTitleText: ''
+    };
+
+      async  getPoster(id){
+          try {
+              let posterResponse = await api.poster(id);
+              this.poster = posterResponse.data;
+              this.$apply();
+          }catch (e) {
+              console.log(err)
+              wepy.showModal({
+                  title: '提示',
+                  content: '服务器错误，请联系管理员'
+              })
+          }
+      };
+      data = {
+          poster:null
+      };
+      onLoad(options){
+          this.getPoster(options.id)
+      }
+  }
+</script>

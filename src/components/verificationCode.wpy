@@ -1,0 +1,129 @@
+<style lang="scss">
+    @import "../sass/function";
+    .captchaImage{padding: rpx(10);
+        image{width: rpx(200);height: rpx(100)}
+    }
+</style>
+
+
+<template>
+        <view class="weui-cell weui-cell_vcode weui-cell_input">
+            <view class="weui-cell__hd">
+                <view class="weui-label">验证码</view>
+            </view>
+
+            <view class="weui-cell__bd">
+                <input class="weui-input" @input="bindCaptchaCode" type="number" placeholder="请输入验证码"/>
+            </view>
+            <view class="weui-cell__ft captchaImage">
+                <image   class="weui-vcode-img " @tap="getCaptcha"   src="{{captchaTpl}}"></image>
+            </view>
+        </view>
+        <view wx:if="{{ errors.captchaCode }}"  class="weui-cells__tips error-message weui-cell_warn">{{ errors.captchaCode[0] }}</view>
+
+    <view class="weui-cell weui-cell_vcode weui-cell_input">
+            <view class="weui-cell__hd">
+                <view class="weui-label">手机号</view>
+            </view>
+            <view class="weui-cell__bd">
+                <input class="weui-input" @input="bindPhone" value="{{phone}}" type="tel" placeholder="请输入手机号"/>
+            </view>
+            <view class="weui-cell__ft">
+                <a href="javascript:void(0)" @tap="getVerificationCode" class="weui-vcode-btn">获取验证码</a>
+            </view>
+        </view>
+        <view wx:if="{{ errors.phone }}"  class="weui-cells__tips error-message weui-cell_warn">{{ errors.phone[0] }}</view>
+</template>
+
+<script>
+    import wepy from 'wepy';
+    import api from '@/http/api';
+
+    export default class VerificationCode extends wepy.component {
+        props = {
+            phone:{
+                type:Number,
+                twoWay: true
+            },
+            verificationKey:{
+                type:String,
+                twoWay: true
+            },
+
+        };
+        data = {
+            phone: '',//图片验证码
+            captchaCode: '',//图片验证码
+            captchaTpl: '',//图片验证码图片路径
+            captchaKey: '',//图片验证码key,
+            verificationKey: '',//短信验证码Key
+            verificationCode: '',//短信验证码Code
+            errors: {}            // 表单错误
+        };
+
+        async getCaptcha() {
+            await api.getCaptcha().then((response) => {
+                const data = response.data;
+                this.captchaTpl = data.captcha_image_content;
+                this.captchaKey = data.captchaKey;
+                this.$apply();
+            });
+        }
+
+        methods = {
+
+            bindPhone (e) {
+                this.phone = e.detail.value
+            },
+            bindCaptchaCode (e) {
+                this.captchaCode = e.detail.value
+            },
+
+
+            async getCaptcha() {
+                this.getCaptcha()
+            },
+            async getVerificationCode() {
+                this.errors = {};
+                if(!this.captchaCode){
+                    this.errors.captchaCode = ['验证码不得为空！'];
+                    this.$apply()
+                    return false
+                }
+                if (!(/^1[34578]\d{9}$/.test(this.phone))) {
+                    this.errors.phone = ['请输入正确的手机号'];
+                    this.$apply()
+                    return false
+                }
+                await api.verificationCodes({
+                    phone: this.phone,
+                    captchaKey: this.captchaKey,
+                    captchaCode: this.captchaCode
+                }).then((response) => {
+                    if(response.statusCode===201){
+                        const data = response.data;
+                        this.verificationKey = data.key
+                        wx.showModal({
+                            title:'成功',
+                            content:data.message,
+                            showCancel:false
+                        });
+                    }
+                    this.$apply();
+                }).catch((errors) => {
+                    console.log(errors);
+                    this.getCaptcha();
+                });
+
+            }
+        };
+
+        async onLoad() {
+            try {
+                this.getCaptcha()
+            }catch (e) {
+                console.log(e);
+            }
+        }
+    }
+</script>

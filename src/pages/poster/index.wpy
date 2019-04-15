@@ -1,0 +1,262 @@
+<style lang="scss">
+    @import "../../sass/function";
+    .icon{margin-right: rpx(10)}
+    .posterContainer {
+        display: flex;
+        flex-wrap: wrap;margin-top: rpx(20);
+        .posterItem {
+            width: 48vw;
+            padding: 0 1vw;
+            box-sizing: content-box;
+            margin-bottom: 2vw;
+            overflow: hidden;
+
+        }
+
+        .picBox {
+            height: 85vw
+        }
+
+        .posterTitle {
+            display: block;
+            font-weight: bold;
+            margin: rpx(4) 0;
+            overflow: hidden;text-overflow:ellipsis;white-space: nowrap;
+        }
+
+        .rebate {
+            display: block;
+            font-size: 3vw;
+            overflow: hidden;text-overflow:ellipsis;white-space: nowrap;
+        }
+    }
+    .weui-navbar{position: relative}
+    .weui-navbar.top{}
+    .page__bd{z-index: 1;position: relative}
+    .tabContainer{
+        transition:all 0.5s;
+        position: fixed;
+        top: 0;
+        right: -100vw;
+        background: #fff;
+        width: 100vw;
+        height: 100vh;
+        overflow-y: auto;
+        z-index: 2;
+        &.show{
+            right: 0;
+        }
+    }
+</style>
+
+<template>
+    <view class="page">
+        <view class="page__bd">
+            <view class="weui-tab">
+                <view class="weui-navbar" >
+
+                    <view  data-key="0" class="weui-navbar__item {{activeIndex === 0 ? 'weui-bar__item_on' : ''}}" @tap="tabClick">
+                        <text class="weui-navbar__title"><text class="fa fa-map icon"></text>{{curCityName?curCityName:'城市'}}</text>
+                    </view>
+                    <view  data-key="1" class="weui-navbar__item {{activeIndex === 1 ? 'weui-bar__item_on' : ''}}" @tap="tabClick">
+                        <text class="weui-navbar__title"><text class="fa fa-tags icon"></text>{{curCategoryName?curCategoryName:'分类'}}</text>
+                    </view>
+                    <view  data-key="2" class="weui-navbar__item {{activeIndex === 2 ? 'weui-bar__item_on' : ''}}" @tap="tabClick">
+                        <text class="weui-navbar__title"><text class="fa fa-search icon"></text>搜索</text>
+                    </view>
+                    <view  data-key="3" class="weui-navbar__item {{activeIndex === 3 ? 'weui-bar__item_on' : ''}}" @tap="tabClick">
+                        <text class="weui-navbar__title"><text class="fa fa-sort icon"></text>{{curOrder?curOrder:'排序'}}</text>
+                    </view>
+                </view>
+
+            </view>
+
+
+
+            <view class="{{activeIndex===2?'':'hidden'}}">
+            </view>
+
+            <view class="posterContainer">
+                <repeat for="{{posters}}" key="index" index="index" item="poster">
+                    <view class="posterItem">
+                        <navigator url="/pages/poster/show?id={{poster.id}}">
+                            <view class="picBox">
+                                <image lazy-load="true" src="{{poster.thumbnail}}" mode='widthFix'></image>
+                            </view>
+                            <text class="posterTitle">{{poster.title}}</text>
+                            <rich-text class="rebate" nodes="{{poster.rebate}}"></rich-text>
+                        </navigator>
+                    </view>
+                </repeat>
+            </view>
+
+            <view class="weui-loadmore" wx:if="{{loading}}">
+                <view class="weui-loading"></view>
+                <view class="weui-loadmore__tips">正在加载</view>
+            </view>
+
+            <view class="weui-loadmore weui-loadmore_line" wx:if="{{ noMoreData }}">
+                <view class="weui-loadmore__tips weui-loadmore__tips_in-line">没有更多数据</view>
+            </view>
+
+
+        </view>
+        <view class="tabContainer {{activeIndex>=0?'show':''}}">
+            <view class="weui-tab__content {{activeIndex===0?'':'hidden'}}">
+                <city :activeIndex.sync="activeIndex" @city.user="getCity"></city>
+<!--                <city :activeIndex.sync="activeIndex" @city.user="getCity"></city>-->
+            </view>
+            <view class="weui-tab__content {{activeIndex===1?'':'hidden'}}">
+                <category :activeIndex.sync="activeIndex" @posterCategory.user="getPosterCategory"></category>
+            </view>
+            <view class="weui-tab__content {{activeIndex===2?'':'hidden'}}">
+                <search :activeIndex.sync="activeIndex" @searchInput.user="getTitle"></search>
+            </view>
+            <view class="weui-tab__content {{activeIndex===3?'':'hidden'}}">
+                <order :activeIndex.sync="activeIndex" @getOrder.user="getOrder"></order>
+            </view>
+        </view>
+    </view>
+</template>
+
+
+<script>
+    import wepy from 'wepy';
+    import api from '@/http/api'
+    import category from './components/category'
+    // import city from './components/city'
+    import city from '@/components/citySelect'
+    import search from './components/search'
+    import order from './components/order'
+
+    export default class Index extends wepy.page {
+        config = {
+            enablePullDownRefresh: true
+        };
+
+        components={
+            category:category,
+            city:city,
+            search:search,
+            order:order
+        };
+
+        watch = {
+
+        }
+
+
+        data = {
+            tabbarList: [
+                {name: '城市', icon: 'fa fa-map', popup: 'city'},
+                {name: '分类', icon: 'fa fa-tags', popup: 'category'},
+                {name: '搜索', icon: 'fa fa-search', popup: 'search'},
+                {name: '排序', icon: 'fa fa-sort', popup: 'order'},
+            ],
+            posterQuery: {
+                categoryId: '',
+                cityId: '',
+                title: '',
+                order: ''
+            },
+            curCityName:'',
+            curCity:'',
+            curOrder:'',
+            inputTitle:'',
+            posters:[],
+            activeIndex:0,
+            // 当前分页
+            page: 1,
+            noMoreData: false,
+            loading: false,
+        };
+        async getPosters(page, categoryId, cityId, title,order,reset=false){
+            this.loading = true;
+            const posterData = await api.posters({
+                categoryId: categoryId,
+                cityId: cityId,
+                title: title,
+                page: page,
+                order: order,
+            });
+            let posters = posterData.data.data;
+            this.posters =reset?posters:this.posters.concat(posters);
+            let pagination = posterData.data.meta.pagination;
+
+            // 根据分页设置是否还有更多数据
+            if (pagination.current_page === pagination.total_pages) {
+                this.noMoreData = true
+            }
+            this.loading = false;
+
+            this.$apply();
+
+        }
+        async onPullDownRefresh() {
+            this.noMoreData = false;
+            this.page = 1;
+            await this.getPosters(1,this.posterQuery.categoryId, this.posterQuery.cityId, this.posterQuery.title,this.posterQuery.order, true);
+            wepy.stopPullDownRefresh()
+        }
+
+        async onReachBottom () {
+            // 如果没有更多内容，直接返回
+            if (this.noMoreData) {
+                return
+            }
+            this.page = this.page + 1;
+            await this.getPosters(this.page,false ,this.posterQuery.categoryId, this.posterQuery.cityId, this.posterQuery.title,this.posterQuery.order);
+
+
+        }
+
+        methods={
+            tabClick: function (e) {
+                this.activeIndex = parseInt(e.currentTarget.dataset.key);
+                this.$apply();
+            },
+            
+            getPosterCategory(category) {
+                if(category){
+                    this.posterQuery.categoryId = category.id;
+                    this.curCategoryName = category.name;
+                }else{
+                    this.posterQuery.categoryId = '';
+                    this.curCategoryName = '';
+                }
+                this.$apply();
+                this.getPosters(1, category.id, this.posterQuery.cityId, this.posterQuery.title,this.posterQuery.order,true)
+            },
+
+            getCity(city) {
+
+                if(city&&typeof city!=='undefined'){
+                    this.posterQuery.cityId = city.city_id;
+                    this.curCityName = city.city_name;
+                }else{
+                    this.posterQuery.cityId = '';
+                    this.curCityName = '';
+                }
+                this.getPosters(1, this.posterQuery.categoryId, this.posterQuery.cityId, this.posterQuery.title,this.posterQuery.order,true)
+                this.$apply();
+            },
+
+            getTitle(title){
+                this.posterQuery.title = title;
+                this.$apply();
+                this.getPosters(1, category.id, this.posterQuery.cityId, this.posterQuery.title,this.posterQuery.order,true)
+            },
+            getOrder(order){
+                this.posterQuery.order = order.value;
+                this.curOrder = order.name;
+                this.$apply();
+                this.getPosters(1, this.posterQuery.categoryId, this.posterQuery.cityId, this.posterQuery.title,this.posterQuery.order,true)
+            },
+
+        };
+        async onLoad(){
+            this.getPosters(this.page ,this.posterQuery.categoryId, this.posterQuery.cityId, this.posterQuery.title,this.posterQuery.order);
+        }
+
+    }
+</script>

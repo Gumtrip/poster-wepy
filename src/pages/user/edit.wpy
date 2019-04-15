@@ -1,0 +1,140 @@
+<style lang="scss">
+    @import "../../sass/function";
+    .avatar-wrap{
+        margin-top: rpx(20);
+    }
+    .image-wrap {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    .avatar {
+        width:rpx(100);
+        height: rpx(100);
+        display: block;
+        border-radius: 50%;
+    }
+
+</style>
+
+
+<template>
+    <view class="page">
+        <form bindsubmit="submit">
+            <view class="page_bd">
+                <view class="avatar-wrap image-wrap">
+                    <image class="avatar" src="{{ user.avatar }}"/>
+                </view>
+                <view class="weui-cells__title">用户名片</view>
+                <view class="weui-cells weui-cells_after-title">
+                    <view class="weui-cell">
+                        <view class="image-wrap weui-cell__bd">
+                            <image class="avatar" src="{{ user.business_card }}" @tap="updateCard"/>
+                        </view>
+                        <view class="weui-cell__ft weui-cell__ft_in-access">
+                        </view>
+                    </view>
+                </view>
+                <view class="weui-cells__title">用户名</view>
+                <view class="weui-cells weui-cells_after-title">
+                    <view class="weui-cell weui-cell_input">
+                        <view class="weui-cell__bd">
+                            <input class="weui-input" @input="bindUserName" placeholder="请输入姓名" type="text" value="{{user.username}}"/>
+                        </view>
+                    </view>
+                    <view wx:if="{{ errors.username }}" class="weui-cell__ft">
+                        <icon type="warn" size="23" color="#E64340"></icon>
+                    </view>
+                </view>
+                <view wx:if="{{ errors.username }}" class="weui-cells__tips error-message">{{ errors.username[0] }}</view>
+
+                <!-- 提交表单 -->
+                <view class="weui-btn-area">
+                    <button class="weui-btn" type="primary" formType="submit">修改</button>
+                </view>
+            </view>
+        </form>
+
+    </view>
+</template>
+
+<script>
+  import wepy from 'wepy';
+  import api from '@/http/api';
+
+  export default class edit extends wepy.page {
+    config = {
+      navigationBarTitleText: '编辑我的信息'
+    };
+    // 可用于页面模板绑定的数据
+    data = {
+        user:{},
+    };
+    
+    async onShow(){
+        this.user = wepy.getStorageSync('user');
+    }
+    methods= {
+
+        async bindUserName(e) {
+            this.user.username = e.detail.value
+        },
+
+        async submit(e) {
+            this.errors = null
+            try {
+                let editResponse = await api.userUpdate(this.user);
+
+
+                // 请求成功，缓存用户数据
+                if (editResponse.statusCode === 200) {
+                    this.user = editResponse.data
+                    wepy.setStorageSync('user', editResponse.data)
+                    this.$apply()
+
+                    wepy.showToast({
+                        title: '修改成功',
+                        icon: 'success',
+                        duration: 2000
+                    })
+                }
+            } catch (err) {
+                console.log(err)
+                wepy.showModal({
+                    title: '提示',
+                    content: '服务器错误，请联系管理员'
+                })
+            }
+        },
+
+        async updateCard () {
+            // 选择头像图片
+            let image = await wepy.chooseImage({count: 1})
+            try {
+                // 获取选择的图片
+                let cardPath = image.tempFilePaths[0];
+                // 调用上传图片接口
+                let imageResponse = await api.uploadImages({
+                    formData: {
+                        type: 'user',
+                        prefix: this.user.id,
+                    },
+                    name: 'images',
+                    filePath: cardPath
+                });
+                // 上传成功成功记录数据
+                if (imageResponse.statusCode === 201) {
+                    let responseData =JSON.parse(imageResponse.data) ;
+                    this.user.business_card = responseData[0];
+                    this.$apply()
+                }
+            } catch (err) {
+                wepy.showModal({
+                    title: '提示',
+                    content: '服务器错误，请联系管理员'
+                })
+            }
+        }
+    }
+  }
+</script>

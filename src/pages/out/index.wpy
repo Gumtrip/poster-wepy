@@ -1,0 +1,23 @@
+<style lang="scss">
+
+</style>
+
+
+<template>
+    <web-view src="{{url}}"></web-view>
+</template>
+
+<script>
+  import wepy from 'wepy';
+  export default class index extends wepy.page {
+    config = {
+      navigationBarTitleText: ''
+    };
+    data = {
+        url:''
+    };
+    onLoad(options){
+        this.url = options.externalUrl;
+    }
+  }
+</script>

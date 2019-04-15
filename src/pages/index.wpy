@@ -1,0 +1,124 @@
+<style lang="scss" >
+    @import "../sass/function";
+    .swiperItem{max-width: 100%;max-height: 100%;text-align: center};
+    .navList {margin-top: 4vh;
+        display: flex;
+        justify-content: space-between;
+        padding:0 4vw;
+        .navItem {
+            width: 20%;align-items: center;
+            navigator{display: block;width: 80%;margin: 0 auto;padding-top: rpx(20);}
+            image{width: rpx(64);height:rpx(64) ;display: inline-block}
+        }
+
+        text {display: block;
+            margin-top: 1vh;
+            text-align: center
+        }
+
+        div:nth-child(1) text {
+            color: #ff9d00
+        }
+
+        div:nth-child(2) text {
+            color: #32a2f1
+        }
+
+        div:nth-child(3) text {
+            color: #fd4e4e
+        }
+
+        div:nth-child(4) text {
+            color: #feca2b
+        }
+    }
+</style>
+<template>
+    <view class="container">
+        <swiper class="swiperContainer"  indicator-dots="{{banner.indicatorDots}}"
+                autoplay="{{banner.autoplay}}"
+                interval="{{banner.interval}}"
+                duration="{{banner.duration}}"
+        >
+            <repeat for="{{banner.imgUrls}}" key="index" index="index" item="item">
+                <block  >
+                    <swiper-item class="swiperItem">
+                        <image src="{{item}}" class="slide-image"  />
+                    </swiper-item>
+                </block>
+            </repeat>
+        </swiper>
+        <view class="navList">
+            <repeat for="{{navList}}" item="nav" key="key" index="index">
+                <div class="navItem">
+                    <navigator url="{{nav.url}}">
+                        <div  class="picBox">
+                            <image src="/images/i-nav-{{index}}.png" alt=""></image>
+                        </div>
+                        <text>{{nav.title}}</text>
+                    </navigator>
+                </div>
+            </repeat>
+
+
+
+        </view>
+
+        <view class="button-sp-area">
+            <button open-type="getUserInfo" type="primary">获取用户授权</button>
+        </view>
+    </view>
+</template>
+
+<script>
+    import wepy from 'wepy';
+
+
+    export default class Index extends wepy.page {
+        config = {
+            navigationBarTitleText: 'TOP-BOOKING',
+        };
+        // 可用于页面模板绑定的数据
+        data = {
+
+            banner:{
+                indicatorDots: false,
+                autoplay: true,
+                interval: 5000,
+                duration: 1000,
+                imgUrls: [
+                    'https://qiniu-cdn6.jinxidao.com/group1/M00/2B/7E/ooYBAFyLjBKAXRGGAAKVd92yY-Y813.png?imageView2/2/interlace/1/q/85',
+                    'https://qiniu-cdn6.jinxidao.com/group1/M00/2B/77/oYYBAFyO93iAC0zwAAL6rDXW3J8280.jpg?imageView2/2/interlace/1/q/85',
+                    'https://qiniu-cdn6.jinxidao.com/group1/M00/2B/8E/ooYBAFyO-PWARm7kAAKdQPul6Is310.jpg?imageView2/2/interlace/1/q/85'
+                ],
+            },
+
+            navList: [
+                {
+                    title: '首页',
+                    url: '/',
+                },
+                {
+                    title: '酒店',
+                    url: '/hotels/home',
+                },
+                {
+                    title: '门票',
+                    url: '/scenic/home',
+                },
+                {
+                    title: '海报',
+                    url: '/pages/poster/index',
+                },
+            ],
+
+        };
+        
+        onShow(){
+            // wepy.showModal({
+            //     title: '提示',
+            //     content: '你好'
+            // })
+        }
+    }
+</script>

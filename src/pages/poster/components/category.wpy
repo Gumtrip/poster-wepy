@@ -1,0 +1,100 @@
+<style lang="scss">
+    @import "../../../sass/function";
+    #posterCategory {
+
+    }
+    .header{justify-content: space-between}
+    .firstCategory {;margin: 4vw 0;}
+    .secCategoryContainer{}
+    .secCategory{margin-right: rpx(10);}
+
+
+</style>
+
+
+<template>
+    <view class="page" id="posterCategory">
+        <view class="page__bd page__bd_spacing">
+            <view class="weui-flex header">
+                <view class="page__title">文章分类</view>
+                <icon @tap="tabClose" type="cancel" size="60rpx" color="#666" />
+            </view>
+
+            <view class="firstCategory">
+                <text data-category="" @tap="chooseCategory">全部</text>
+            </view>
+            <repeat for="{{categoryGroups}}" item="secCategories"  index="categoryId">
+                <view class="firstCategory">
+                    <text data-category="{{categoryMaps[categoryId]}}" @tap="chooseCategory">{{categoryMaps[categoryId].name}}</text>
+                </view>
+                <view class="secCategoryContainer">
+                    <repeat for="{{secCategories}}" item="secCategory">
+                        <button class="secCategory" data-category="{{secCategory}}"  @tap="chooseCategory" type="default" size="mini">{{secCategory.name}}</button>
+                    </repeat>
+                </view>
+            </repeat>
+        </view>
+    </view>
+</template>
+
+<script>
+    import wepy from 'wepy';
+    import api from '@/http/api'
+    import {groupBy} from 'lodash'
+
+    export default class category extends wepy.component {
+
+        data = {
+            categories:{},
+        };
+        props = {
+            posterCategory:{
+                type:Array,
+                twoWay: true
+            },
+            activeIndex:{
+                type:Number,
+                twoWay: true
+            }
+        };
+        computed={
+            categoryMaps(){
+                let maps={};
+                const categories= this.categories;
+                for(let i=0;i<categories.length;i++){
+                    maps[categories[i].id] = categories[i]
+                }
+                return maps;
+            },
+            categoryGroups() {
+                return groupBy(this.categories, 'parent_id')
+            }
+        };
+
+        async getPosterCategory() {
+            const response =await api.posterCategories();
+            this.categories = response.data.data;
+            this.$apply();
+
+        }
+        async onLoad(){
+            this.getPosterCategory();
+        }
+        close(){
+            this.activeIndex = -1;
+            this.$apply()
+        }
+
+        methods={
+            chooseCategory(e){
+                const posterCategory =e.currentTarget.dataset.category;
+                this.posterCategory = posterCategory;
+                this.close();
+                this.$emit('posterCategory',posterCategory);
+            },
+            tabClose(){
+                this.close();
+            }
+        }
+    }
+</script>

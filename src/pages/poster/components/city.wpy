@@ -1,0 +1,89 @@
+<style lang="scss">
+    @import "../../../sass/function";
+
+    .header {
+        justify-content: space-between
+    }
+
+    .firstCategory {;
+        margin: 4vw 0;
+    }
+
+    .secCategoryContainer {
+    }
+
+    .secCategory {
+        margin-right: rpx(10);
+    }
+</style>
+
+
+<template>
+    <view class="page">
+        <view class="page__bd page__bd_spacing">
+            <view class="weui-flex header">
+                <view class="page__title">城市</view>
+                <icon @tap="tabClose" type="cancel" size="60rpx" color="#666"/>
+            </view>
+
+            <view class="firstCategory">
+                <text data-category="" @tap="chooseCity">全部</text>
+            </view>
+            <repeat for="{{cities}}" item="city">
+                <button class="secCategory" data-city="{{city}}" @tap="chooseCity" type="default" size="mini">
+                    {{city.city_name}}
+                </button>
+            </repeat>
+        </view>
+    </view>
+</template>
+
+<script>
+    import wepy from 'wepy';
+    import api from '@/http/api';
+    import { groupBy } from 'lodash';
+    import { orderBy } from 'lodash';
+
+    export default class city extends wepy.component {
+        data = {
+            cities: {}
+        };
+        props = {
+            activeIndex: {
+                type: Number,
+                twoWay: true
+            }
+        };
+
+        computed = {};
+
+
+        async getCity() {
+            const cityResponse = await api.city({
+                provinceId: ['2000', '3200', '3300']
+            });
+            this.cities = cityResponse.data.data;
+            this.$apply();
+        }
+
+        close() {
+            this.activeIndex = -1;
+            this.$apply();
+        }
+
+        methods = {
+            tabClose() {
+                this.close();
+            },
+            chooseCity(e) {
+                const city = e.currentTarget.dataset.city;
+                this.$emit('city', city);
+                this.close();
+            }
+        };
+
+        onLoad() {
+            this.getCity();
+        }
+    }
+</script>

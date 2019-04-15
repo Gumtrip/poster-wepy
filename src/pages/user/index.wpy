@@ -1,0 +1,176 @@
+<style lang="scss">
+    @import "../../sass/function";
+
+    .avatar {
+        margin-right: rpx(20);
+
+        image {
+            width: rpx(100);
+            height: rpx(100)
+        }
+    }
+
+    .userInfo {
+        text {
+            margin-right: rpx(10)
+        }
+    }
+
+    .loginBtn, .loginBtn button {
+        margin-top: 4vh
+    }
+</style>
+
+
+<template>
+    <view class="page">
+
+
+        <view class="page__bd ">
+
+            <view class="weui-cells">
+                <navigator wx:if="{{user}}" url="/pages/user/edit" class="weui-cell weui-cell_access"
+                           hover-class="weui-cell_active">
+                    <view class="weui-cell__bd">
+                        <view class="weui-flex">
+                            <view class="weui-item avatar">
+                                <image wx:if="{{user.avatar}}" src="{{user.avatar}}"></image>
+                            </view>
+                            <view class="weui-item userInfo">
+                                <view>{{user.username}}</view>
+                                <view>
+                                    <text class="fa fa-mobile-phone"></text>
+                                    {{user.phone}}
+                                </view>
+                            </view>
+                        </view>
+                    </view>
+                    <view class="weui-cell__ft weui-cell__ft_in-access"></view>
+
+                </navigator>
+
+                <navigator url="/pages/user/passwordReset" class="weui-cell weui-cell_access"
+                           hover-class="weui-cell_active">
+                    <view class="weui-cell__bd">更改密码</view>
+                    <view class="weui-cell__ft weui-cell__ft_in-access"></view>
+                </navigator>
+                <navigator url="/pages/user/orders" class="weui-cell weui-cell_access" hover-class="weui-cell_active">
+                    <view class="weui-cell__bd">我的订单</view>
+                    <view class="weui-cell__ft weui-cell__ft_in-access"></view>
+                </navigator>
+
+            </view>
+
+
+            <view class="page__bd_spacing loginBtn">
+                <navigator wx:if="{{needLogin}}" url="{{loginUrl}}">
+                    <button class="weui-btn" type="primary">点击登陆</button>
+                </navigator>
+                <button type="warn" @tap="logout">登出</button>
+            </view>
+
+        </view>
+    </view>
+</template>
+
+<script>
+    import wepy from 'wepy';
+    import api from '@/http/api';
+
+    export default class Index extends wepy.page {
+        config = {
+            navigationBarTitleText: '我的'
+        };
+        data = {
+            loggedIn: false,
+            loginUrl: '/pages/auth/login',
+            user: '',
+            needLogin: false
+
+        };
+
+        /**
+         * 同步用户名称和头像
+         * @returns {Promise<void>}
+         */
+        async syncUserInfo() {
+            const user = wepy.getStorageSync('user');
+            if (!user.username || !user.avatar) {
+                let response = await wepy.getUserInfo({
+                    withCredentials: true
+                });
+                const userInfo = response.userInfo;
+                let params = {};
+                if (!user.username) params.username = userInfo.nickName;
+                if (!user.avatar) params.avatar = userInfo.avatarUrl;
+                if (params) {
+                    api.userUpdate(params);
+                }
+            }
+
+        }
+
+        // 获取当前登录用户信息
+        async getCurrentUser() {
+            // 如果用户未登录
+            if (!Index.checkLogin()) {
+                return null;
+            }
+            // 从缓存中获取用户信息
+            let user = '';
+
+            //请求接口获取最新会员信息
+            let userResponse = await api.userMe();
+            // 状态码为 200 表示请求成功
+            if (userResponse.statusCode === 200) {
+                user = userResponse.data;
+                wepy.setStorageSync('user', user);
+            }
+            return user;
+        }
+
+        // 用户是否已经登录
+        static checkLogin() {
+            return (wepy.getStorageSync('token') !== '');
+        }
+
+        methods = {
+            async logout(e) {
+                let res = await wepy.showModal(
+                    {
+                        title: '退出登陆',
+                        content: '是否退出登陆?'
+                    }
+                );
+                if (res.confirm) {
+                    try {
+                        await api.logout();
+
+                        wepy.switchTab({
+                            'url': '/pages/index'
+                        });
+                    } catch (e) {
+                        console.log(e);
+                    }
+
+                }
+
+            }
+        };
+
+
+        async onShow() {
+            if (wepy.getStorageSync('token')) {
+                this.needLogin = false;
+                await this.syncUserInfo();
+                this.user = await this.getCurrentUser();
+            } else {//检测到该用户没绑定的话或者没有注册，跳转到登陆页面
+                this.needLogin = true;
+            }
+            this.$apply();
+
+        }
+    }
+</script>
+
+

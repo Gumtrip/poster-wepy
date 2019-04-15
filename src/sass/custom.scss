@@ -1,0 +1,29 @@
+@import "function";
+.hidden{display: none;}
+.picBox {
+    text-align: center;
+    font-size: 0;
+    overflow: hidden;
+    display: block;
+    span {
+        content: ' ';
+        display: inline-block;
+        width: 0;
+        height: 100%;
+        vertical-align: middle;
+    }
+    p {
+        display: inline-block;
+        vertical-align: middle;
+    }
+    image {
+        max-height: 100%;
+        max-width: 100%
+    }
+}
+.container {
+    width: 100%;
+    overflow-x: hidden;
+}
+.text-success{color: #28a745}
+.text-primary{color: #007bff}

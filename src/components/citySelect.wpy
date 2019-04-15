@@ -1,0 +1,349 @@
+<style lang="scss">
+    @import "../sass/function";
+    .header{margin-bottom: rpx(10)}
+    .currentCity {
+        justify-content: space-between;
+        margin: 1vh 0;
+
+        button {
+            margin-right: 2vw
+        }
+    }
+
+    .main {
+        height: 100vh;
+        width: 100vw;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .search-bar {
+        height: 40px;
+        display: flex;
+        flex-direction: row;
+    }
+
+    .search {
+        flex: 1;
+        width: 0;
+        height: 40px;
+        padding: 0 10px;
+        border-bottom: 1px solid #ddd;
+        background-color: white;
+        box-sizing: border-box;
+    }
+
+    .search-cancel {
+        color: #666;
+        line-height: 40px;
+        padding: 0 8px;
+        font-size: 14px;
+    }
+
+    .mask {
+        // height: 100vh;
+        width: 100vw;
+        background-color: rgba(0, 0, 0, .7);
+        position: fixed;
+        top: 40px;
+        left: 0;
+        z-index: 1;
+    }
+
+    .scroll {
+        flex: 1;
+        height: 0;
+        width: 100%;
+        background-color: #eee
+    }
+
+    .city-letter {
+        text-indent: 28px;
+        height: 30px;
+        line-height: 30px;
+    }
+
+    .city-item {
+        height: rpx(70);
+        line-height: rpx(70);
+        background-color: white;
+        text-indent: 28px;
+        font-size: 14px;
+        position: relative;
+
+        &::after {
+            content: ' ';
+            display: block;
+            height: 1px;
+            width: 90%;
+            position: absolute;
+            left: 5%;
+            bottom: 0;
+            background-color: #DDD;
+            transform: scaleY(.5)
+        }
+
+        &:active {
+            opacity: .7;
+        }
+    }
+
+    .index-list {
+        height: 414px;
+        width: 30px;
+        // background-color: red;
+        position: fixed;
+        right: 0px;
+        top: 50%;
+        margin-top: -187px;
+        // top: calc(10vh + 40px);
+        display: flex;
+        flex-direction: column;
+    }
+
+    .index-list-item {
+        width: 100%;
+        // flex: 1;
+        height: 10px;
+        line-height: 2;
+        font-size: 12px;
+        display: flex;
+        padding-left: 5px;
+        padding-top: 4px;
+        padding-bottom: 4px;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .letter-notify {
+        height: 80px;
+        width: 80px;
+        background-color: rgba(0, 0, 0, .7);
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        margin-top: -40px;
+        margin-left: -40px;
+        border-radius: 5px;
+        color: white;
+        line-height: 80px;
+        font-size: 50px;
+        text-align: center;
+    }
+</style>
+
+<template>
+    <view class="main">
+        <view class="page__bd_spacing">
+            <view class="weui-flex header">
+                <view class="page__title">城市选择</view>
+                <icon @tap="tabClose" type="cancel" size="60rpx" color="#666"/>
+            </view>
+        </view>
+
+        <view class="weui-search-bar" style="display: none">
+            <view class="weui-search-bar__form">
+                <view class="weui-search-bar__box">
+                    <input type="text" class="weui-search-bar__input" placeholder="请输入城市名称或者拼音" value="{{inputVal}}"
+                           @input="bindInput"/>
+                    <view class="weui-icon-clear" wx:if="{{inputVal.length > 0}}" @tap="clearInput">
+                        <icon type="clear" size="14"></icon>
+                    </view>
+                </view>
+            </view>
+        </view>
+
+
+        <view class="weui-flex currentCity">
+            <view  class="city-letter">
+                当前城市： {{currentCity.city_name}}
+            </view>
+            <view>
+                <button size="mini" data-city="" type="warn" @tap="onSelected">取消</button>
+            </view>
+        </view>
+
+
+        <!-- 列表 -->
+        <scroll-view class="fit scroll"
+                     scroll-y
+                     scroll-into-view="{{scrollIntoId}}">
+
+            <view class="city-letter">热门城市</view>
+            <repeat for="{{hotCitys}}" item="city">
+                <view class="city-item" data-city="{{city}}"
+                      @tap="onSelected">
+                    {{city.city_name}}
+                </view>
+            </repeat>
+
+            <repeat for="{{cities}}"
+                    key="letter.letter"
+                    item="letter">
+                <view>
+                    <view class="city-letter" id="{{letter.letter}}">{{ letter.letter }}</view>
+                    <repeat for="{{letter.cityInfo}}"
+                            key="city.id"
+                            item="city">
+                        <view class="city-item" data-city="{{city}}"
+                              @tap="onSelected">{{ city.city_name }}
+                        </view>
+                    </repeat>
+                </view>
+            </repeat>
+            <view class="index-list">
+                <repeat for="{{letters}}">
+                    <view class="index-list-item"
+                          data-letter="{{item}}"
+                          @touchstart.stop="onListTouchStart"
+                          @touchmove.stop="onListTouchMove"
+                          @touchend.stop="onListTouchEnd">{{ item }}
+                    </view>
+                </repeat>
+            </view>
+            <view wx:if="{{currentLetter}}" class="letter-notify">{{ currentLetter }}</view>
+        </scroll-view>
+    </view>
+</template>
+<script>
+    import wepy from 'wepy';
+
+    const hotCode = [3301, 3201, 2001];
+    import api from '@/http/api';
+
+
+    export default class CitySelect extends wepy.component {
+        data = {
+            cities: [],
+            currentCity: '',
+            hotCitys: [],
+            letters: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'J', 'K', 'L', 'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'W', 'X', 'Y', 'Z'],
+            scrollIntoId: '',
+            currentLetter: '',
+            letterHeight: 18,
+            startPageY: 0,
+            timer: null,
+            showSearch: false,
+            searchResult: []
+        };
+        props = {
+            activeIndex: {
+                type: Number,
+                twoWay: true
+            }
+        };
+
+        methods = {
+
+            onListTouchStart({ currentTarget, touches }) {
+                const letter = currentTarget.dataset.letter;
+                this.onLetterTaped(letter);
+                this.startPageY = touches[0].pageY;
+            },
+            onListTouchMove({ currentTarget, touches }) {
+                const letter = currentTarget.dataset.letter;
+                const index = this.letters.indexOf(letter);
+                const pageY = touches[0].pageY;
+                let dist = ~~(Math.abs(this.startPageY - pageY) / this.letterHeight);
+                let isUp = false;
+                if (this.startPageY - pageY > 0) {
+                    isUp = true;
+                }
+                if (dist) {
+                    let i = isUp ? index - dist : index + dist;
+                    i < 0 && (i = 0);
+                    i > this.letters.length - 1 && (i = this.letters.length - 1);
+                    this.onLetterTaped(this.letters[i]);
+                }
+            },
+            onListTouchEnd() {
+                if (this.timer) {
+                    clearTimeout(this.timer);
+                }
+                this.timer = setTimeout(() => {
+                    clearTimeout(this.timer);
+                    this.currentLetter = '';
+                    this.timer = null;
+                    this.$apply();
+                }, 750);
+            },
+
+            tabClose() {
+                this.close();
+            },
+
+            onSelected(e) {
+                const city = e.currentTarget.dataset.city;
+                this.currentCity = city;
+                this.$emit('city', city);
+                this.close();
+            }
+        };
+
+        async onLoad() {
+            await this.getCity();
+            this.cities = await this.getLetterCity();
+            this.hotCitys = await this.getHotCity();
+
+            try {
+                this.$apply();
+            } catch (error) {
+                this.locationFail = true;
+                this.$apply();
+            } finally {
+                wepy.hideLoading();
+            }
+        }
+
+        async getCity() {
+            const cityResponse = await api.city({
+                provinceId: ['2000', '3200', '3300']
+            });
+            this.cityDate = cityResponse.data.data;
+            this.$apply();
+        }
+
+        async onLetterTaped(letter) {
+            this.scrollIntoId =  letter;
+            this.currentLetter = letter;
+        }
+
+
+        async getLetterCity() {
+            const cities = this.cityDate;
+            let tempObj = [];
+            // letters.shift()
+            for (let i = 0; i < this.letters.length; i++) {
+                let letter = this.letters[i];
+                let cityInfo = [];
+                let tempArr = {};
+                tempArr.letter = letter;
+                for (let j = 0; j < cities.length; j++) {
+                    if (letter === cities[j].city_first_letter) {
+                        cityInfo.push(cities[j]);
+                    }
+                }
+                tempArr.cityInfo = cityInfo;
+                tempObj.push(tempArr);
+            }
+            return tempObj;
+        }
+
+        getHotCity() {
+            const cityInfo = [];
+            for (let item of this.cityDate) {
+                if (hotCode.indexOf(item.city_id) !== -1) {
+                    cityInfo.push(item);
+                }
+            }
+            return cityInfo.sort((a, b) => a.code > b.code);
+        }
+
+
+        close() {
+            this.activeIndex = -1;
+            this.$apply();
+        }
+    }
+</script>
+

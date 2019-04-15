@@ -1,0 +1,70 @@
+<style lang="scss">
+    .posterContainer{padding: 0 2vw}
+    .picBox{margin-bottom: 6vh}
+    .posterImage image{width: 100%}
+    #showDetail{
+        margin-bottom: 2vh;
+        button{display: block;width: 100%}
+    }
+    .caption{font-size: 6vw}
+    .rebate{padding: 2vh 0;}
+
+</style>
+
+
+<template>
+    <view class="page">
+        <view class="page__bd page__bd_spacing">
+            <view class="page__title">{{poster.title}}</view>
+            <div id="posterCover">
+                <div class="picBox posterImage">
+                    <image src="{{poster.picture}}" mode='widthFix'></image>
+                </div>
+                <div wx:if="{{poster.url}}" id="showDetail" >
+                    <navigator url="{{poster.url}}">
+                        <button type="primary">查看海报介绍详情</button>
+                    </navigator>
+                </div>
+                <rich-text class="rebate" nodes="{{poster.rebate}}"></rich-text>
+            </div>
+        </view>
+
+    </view>
+</template>
+
+<script>
+  import wepy from 'wepy';
+  import api from '@/http/api'
+
+  export default class show extends wepy.page {
+    config = {
+      navigationBarTitleText: ''
+    };
+    data = {
+        poster:null
+    };
+    async  getPoster(id){
+        try {
+            let posterResponse = await api.poster(id);
+            const poster = posterResponse.data;
+            this.poster = poster;
+
+            if(poster.external_url){
+                this.poster.url ='/pages/out/index?externalUrl='+poster.external_url;
+            }else if(poster.content&&poster.content.length>20){
+                this.poster.url = '/pages/poster/detail?'+poster.id;
+            }
+            this.$apply();
+        }catch (e) {
+            console.log(err)
+            wepy.showModal({
+                title: '提示',
+                content: '服务器错误，请联系管理员'
+            })
+        }
+      };
+    onLoad(options){
+        this.getPoster(options.id)
+    }
+  }
+</script>
