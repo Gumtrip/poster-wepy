@@ -6,9 +6,9 @@
 3.海报列表，海报列表筛选,海报详情
 4.会员中心，修改个人信息
 截图
-![image]（https://github.com/Gumtrip/poster-wepy/blob/master/readmeImages/poster-index.png）
-![image]（https://github.com/Gumtrip/poster-wepy/blob/master/readmeImages/poster-index-1.png）
-![image]（https://github.com/Gumtrip/poster-wepy/blob/master/readmeImages/poster-index-2.png）
-![image]（https://github.com/Gumtrip/poster-wepy/blob/master/readmeImages/poster-show.png）
-![image]（https://github.com/Gumtrip/poster-wepy/blob/master/readmeImages/user1.png）
-![image]（https://github.com/Gumtrip/poster-wepy/blob/master/readmeImages/user2.png）
+![image](https://raw.githubusercontent.com/Gumtrip/poster-wepy/master/readmeImages/poster-index-1.png)
+![image](https://raw.githubusercontent.com/Gumtrip/poster-wepy/master/readmeImages/poster-index-1.png)
+![image](https://raw.githubusercontent.com/Gumtrip/poster-wepy/master/readmeImages/poster-index-2.png)
+![image](https://raw.githubusercontent.com/Gumtrip/poster-wepy/master/readmeImages/poster-show.png)
+![image](https://raw.githubusercontent.com/Gumtrip/poster-wepy/master/readmeImages/user1.png)
+![image](https://raw.githubusercontent.com/Gumtrip/poster-wepy/master/readmeImages/user2.png)
