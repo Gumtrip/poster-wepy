@@ -56,11 +56,8 @@ const request = async (options, showLoading = true,mustAuth=false) => {
     let response = await wepy.request(options);
     if (showLoading) {wepy.hideLoading()}
 
-    
 
     const msg = errorMessage(response.data);
-    
-    
     switch (response.statusCode) {
         case 422:
             wepy.showModal({
@@ -185,11 +182,18 @@ const uploadImages = async (options) => {
     let response = await wepy.uploadFile(options)
     // 隐藏 loading
     wepy.hideLoading();
+    
     const msg = errorMessage(response.data);
+    
     switch (response.statusCode) {
         case 422:
             wepy.showModal({
                 title: '验证失败！',
+                content: msg
+            });break;
+        case 500:
+            wepy.showModal({
+                title: '提示！',
                 content: msg
             });break;
     }
