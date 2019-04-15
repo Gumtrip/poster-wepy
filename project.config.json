@@ -9,7 +9,7 @@
 		"autoAudits": false
 	},
 	"compileType": "miniprogram",
-	"appid": "wxee6c977066e3ef83",
+	"appid": "",
 	"projectname": "top-mini",
 	"miniprogramRoot": "dist/",
 	"condition": {
